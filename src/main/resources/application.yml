@@ -1,0 +1,24 @@
+spring:
+  jpa:
+    database: POSTGRESQL
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+      dialect:  org.hibernate.dialect.PostgreSQLDialect
+  datasource:
+    platform: postgres
+    url:  jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: 123456
+    driverClassName: org.postgresql.Driver
+# JWT
+jwt:
+  header: Authorization
+  secret: mySecret
+  expiration: 604800
+  tokenHead: "Bearer "
+  route:
+    authentication:
+      path: auth
+      refresh: refresh
+      register: "auth/register"
