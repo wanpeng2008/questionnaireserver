@@ -7,9 +7,11 @@ package com.zjp.controller;
 import com.zjp.entity.User;
 import com.zjp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -27,10 +29,18 @@ public class UserController {
     protected Logger logger = Logger.getLogger(UserController.class.getName());
     @Autowired
     private UserRepository userRepository;
+
     @PreAuthorize("hasRole('ADMIN')")
     @RequestMapping(method = RequestMethod.GET)
     public List<User> getUsers() {
         logger.info(String.format("getUsers() invoked: %s ", userRepository.getClass().getName()));
         return userRepository.findAll();
+    }
+
+    @PostAuthorize("returnObject.username == principal.username OR hasRole('ADMIN')")
+    @RequestMapping(value = "/", method = RequestMethod.GET)
+    public User getUserByUsername(@RequestParam(value="username") String username) {
+        logger.info(String.format("getUserByUsername() invoked: %s for %s ", userRepository.getClass().getName(), username));
+        return userRepository.findByUsername(username);
     }
 }
