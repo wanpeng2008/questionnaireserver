@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * 在 @PreAuthorize 中我们可以利用内建的 SPEL 表达式：比如 'hasRole()' 来决定哪些用户有权访问。
@@ -21,13 +22,15 @@ import java.util.List;
  **/
 @RestController
 @RequestMapping("/users")
-@PreAuthorize("hasRole('ADMIN')")
+
 public class UserController {
+    protected Logger logger = Logger.getLogger(UserController.class.getName());
     @Autowired
     private UserRepository userRepository;
-
+    @PreAuthorize("hasRole('ADMIN')")
     @RequestMapping(method = RequestMethod.GET)
     public List<User> getUsers() {
+        logger.info(String.format("getUsers() invoked: %s ", userRepository.getClass().getName()));
         return userRepository.findAll();
     }
 }

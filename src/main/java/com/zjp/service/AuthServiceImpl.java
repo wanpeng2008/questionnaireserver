@@ -48,23 +48,17 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public User register(User userToAdd) {
+    public User register(User userToAdd) throws Exception {
         final String username = userToAdd.getUsername();
         if(userRepository.findByUsername(username)!=null) {
-            return null;
+            throw new Exception(String.format("register user \"%s\" failed: the same username already exists. ", username));
         }
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         final String rawPassword = userToAdd.getPassword();
         userToAdd.setPassword(encoder.encode(rawPassword));
         userToAdd.setLastPasswordResetDate(new Date());
-        //userToAdd.setRoles(new HashSet<>(Arrays.asList(new Role("ROLE_USER"))));
         userToAdd.setRoles(new HashSet<>(Arrays.asList(roleRepository.findByName("ROLE_USER"))));
-        try {
-            return userRepository.save(userToAdd);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return userRepository.save(userToAdd);
     }
 
 

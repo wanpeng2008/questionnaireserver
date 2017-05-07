@@ -1,10 +1,8 @@
 package com.zjp.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.zjp.entity.Role;
-import com.zjp.repository.UserRepository;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
@@ -29,7 +27,7 @@ public class User implements UserDetails{
     private String email;
     @Column(name = "last_pwd_reset_date")
     private Date lastPasswordResetDate;
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "USER_ROLE",
             joinColumns = { @JoinColumn(name = "USER_ID") },
             inverseJoinColumns = { @JoinColumn(name = "ROLE_ID") })
@@ -73,7 +71,11 @@ public class User implements UserDetails{
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        List<GrantedAuthority> grantedAuthorities = new ArrayList<>(roles.size());
+        for(Role role : roles) {
+            grantedAuthorities.add(new SimpleGrantedAuthority(role.getName()));
+        }
+        return new HashSet<>(grantedAuthorities);
     }
 
     public String getPassword() {

@@ -42,7 +42,7 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
             final String authToken = authHeader.substring(tokenHead.length()); // The part after "Bearer "
             String username = tokenUtil.getUsernameFromToken(authToken);
 
-            logger.info("checking authentication " + username);
+            logger.info("checking authentication \"" + username + "\" ");
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
