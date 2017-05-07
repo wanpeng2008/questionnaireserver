@@ -8,5 +8,5 @@ import com.zjp.entity.User;
 public interface AuthService {
     User register(User userToAdd) throws Exception;
     String login(String username, String password);
-    String refresh(String oldToken);
+    String refresh(String oldToken) throws Exception;
 }

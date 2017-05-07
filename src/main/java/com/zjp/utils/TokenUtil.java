@@ -1,5 +1,6 @@
 package com.zjp.utils;
 
+import com.zjp.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -16,6 +17,9 @@ import java.util.Map;
  */
 @Component
 public class TokenUtil {
+    private static final String CLAIM_KEY_USERNAME = "sub";
+    private static final String CLAIM_KEY_CREATED = "created";
+
     @Value("${jwt.secret}")
     private String secret;
 
@@ -25,24 +29,69 @@ public class TokenUtil {
     @Value("${jwt.tokenHead}")
     private String tokenHead;
 
-    public String getUsernameFromToken(String authToken) {
-        return this.getClaimsFromToken(authToken).getSubject();
+    public String getUsernameFromToken(String token) {
+        String username;
+        try {
+            final Claims claims = getClaimsFromToken(token);
+            username = claims.getSubject();
+        } catch (Exception e) {
+            username = null;
+        }
+        return username;
+    }
+    public Date getCreatedDateFromToken(String token) {
+        Date created;
+        try {
+            final Claims claims = getClaimsFromToken(token);
+            created = new Date((Long) claims.get(CLAIM_KEY_CREATED));
+        } catch (Exception e) {
+            created = null;
+        }
+        return created;
     }
 
-    public boolean validateToken(String authToken, UserDetails userDetails) {
-        return true;
+    public Date getExpirationDateFromToken(String token) {
+        Date expiration;
+        try {
+            final Claims claims = getClaimsFromToken(token);
+            expiration = claims.getExpiration();
+        } catch (Exception e) {
+            expiration = null;
+        }
+        return expiration;
+    }
+    public boolean validateToken(String token, UserDetails userDetails) {
+        User user = (User) userDetails;
+        final String username = getUsernameFromToken(token);
+        final Date created = getCreatedDateFromToken(token);
+        //final Date expiration = getExpirationDateFromToken(token);
+        return (
+                username.equals(user.getUsername())
+                        && !isTokenExpired(token)
+                        && !isCreatedBeforeLastPasswordReset(created, user.getLastPasswordResetDate()));
     }
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("sub", userDetails.getUsername());
+        claims.put(CLAIM_KEY_USERNAME, userDetails.getUsername());
+        claims.put(CLAIM_KEY_CREATED, new Date());
         return this.tokenHead+generateToken(claims);
     }
-    public boolean canTokenBeRefreshed(String token, Date lastPasswordResetDate) {
-        return true;
+    public boolean canTokenBeRefreshed(String token, Date lastPasswordReset) {
+        final Date created = getCreatedDateFromToken(token);
+        return !isCreatedBeforeLastPasswordReset(created, lastPasswordReset)
+                && !isTokenExpired(token);
     }
     public String refreshToken(String token) {
-        return "";
+        String refreshedToken;
+        try {
+            final Claims claims = getClaimsFromToken(token);
+            claims.put(CLAIM_KEY_CREATED, new Date());
+            refreshedToken = this.tokenHead + generateToken(claims);
+        } catch (Exception e) {
+            refreshedToken = null;
+        }
+        return refreshedToken;
     }
     /////////////
     String generateToken(Map<String, Object> claims) {
@@ -54,7 +103,7 @@ public class TokenUtil {
     }
 
     private Date generateExpirationDate() {
-        Date expirationDate = new Date(System.currentTimeMillis() + this.expiration);
+        Date expirationDate = new Date(System.currentTimeMillis() + this.expiration*1000);
         return expirationDate;
     }
 
@@ -69,6 +118,14 @@ public class TokenUtil {
             claims = null;
         }
         return claims;
+    }
+    private Boolean isTokenExpired(String token) {
+        final Date expiration = getExpirationDateFromToken(token);
+        return expiration.before(new Date());
+    }
+
+    private Boolean isCreatedBeforeLastPasswordReset(Date created, Date lastPasswordReset) {
+        return (lastPasswordReset != null && created.before(lastPasswordReset));
     }
 
 

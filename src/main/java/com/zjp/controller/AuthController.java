@@ -49,11 +49,13 @@ public class AuthController {
     public ResponseEntity<?> refreshAndGetAuthenticationToken(
             HttpServletRequest request) throws AuthenticationException{
         String token = request.getHeader(tokenHeader);
-        String refreshedToken = authService.refresh(token);
-        if(refreshedToken == null) {
-            return ResponseEntity.badRequest().body(null);
-        } else {
+        logger.info(String.format("refreshAndGetAuthenticationToken() invoked: %s for %s ", authService.getClass().getName(), token));
+        try {
+            String refreshedToken = authService.refresh(token);
             return ResponseEntity.ok(new TokenAuthenticationResponse(refreshedToken));
+        } catch (Exception ex) {
+            logger.warning("Exception raised refresh token "+ex);
+            return new ResponseEntity<User>(HttpStatus.FORBIDDEN);
         }
     }
 
@@ -62,21 +64,10 @@ public class AuthController {
         logger.info(String.format("register() invoked: %s for %s ", authService.getClass().getName(), userVO.getUsername()));
         User user = new User();
         BeanUtils.copyProperties(userVO,user);
-
-/*        User addedUser = authService.register(user);
-        HttpHeaders headers = new HttpHeaders();
-        //return new ResponseEntity<>(addedUser, headers, (addedUser==null)?HttpStatus.INTERNAL_SERVER_ERROR:HttpStatus.OK);
-        if(addedUser == null) {
-            headers.setContentType(MediaType.TEXT_PLAIN);
-            return new ResponseEntity<>("Register fail", headers, HttpStatus.INTERNAL_SERVER_ERROR);
-        } else {
-            headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-            return new ResponseEntity<>(addedUser, headers, HttpStatus.OK);
-        }*/
         try {
             authService.register(user);
         }catch (Exception ex){
-            logger.log(Level.WARNING, "Exception raised register User REST Call "+ex);
+            logger.warning("Exception raised register User REST Call "+ex);
             return new ResponseEntity<User>(HttpStatus.UNPROCESSABLE_ENTITY);
         }
         return new ResponseEntity<User>(HttpStatus.CREATED);

@@ -74,13 +74,14 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String refresh(String oldToken) {
+    public String refresh(String oldToken) throws Exception {
         final String token = oldToken.substring(tokenHead.length());
         String username = tokenUtil.getUsernameFromToken(token);
         User user = (User) userDetailsService.loadUserByUsername(username);
         if (tokenUtil.canTokenBeRefreshed(token, user.getLastPasswordResetDate())){
             return tokenUtil.refreshToken(token);
+        }else{
+            throw new Exception(String.format("refresh token \"%s\" failed: token can not be refreshed. ", oldToken));
         }
-        return null;
     }
 }
