@@ -7,10 +7,13 @@ spring:
       dialect:  org.hibernate.dialect.PostgreSQLDialect
   datasource:
     platform: postgres
-    url:  jdbc:postgresql://localhost:5432/postgres
-    username: postgres
+    url:  jdbc:postgresql://localhost:5432/questionnaire
+    username: questionnaire
     password: 123456
     driverClassName: org.postgresql.Driver
+server:
+  port: 8080
+  contextPath:  /api
 # JWT
 jwt:
   header: Authorization
