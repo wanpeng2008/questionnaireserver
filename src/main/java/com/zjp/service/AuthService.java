@@ -9,4 +9,5 @@ public interface AuthService {
     User register(User userToAdd) throws Exception;
     String login(String username, String password);
     String refresh(String oldToken) throws Exception;
+    void logout();
 }

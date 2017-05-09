@@ -9,6 +9,8 @@ import com.zjp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -39,8 +41,11 @@ public class UserController {
 
     @PostAuthorize("returnObject.username == principal.username OR hasRole('ADMIN')")
     @RequestMapping(value = "/", method = RequestMethod.GET)
-    public User getUserByUsername(@RequestParam(value="username") String username) {
+    public User getUserByUsername(@RequestParam(value="username", required = false) String username) {
         logger.info(String.format("getUserByUsername() invoked: %s for %s ", userRepository.getClass().getName(), username));
+        if(StringUtils.isEmpty(username)){
+            username = SecurityContextHolder.getContext().getAuthentication().getName();
+        }
         return userRepository.findByUsername(username);
     }
 }

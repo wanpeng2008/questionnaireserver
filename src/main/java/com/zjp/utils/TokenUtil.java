@@ -75,7 +75,7 @@ public class TokenUtil {
         Map<String, Object> claims = new HashMap<>();
         claims.put(CLAIM_KEY_USERNAME, userDetails.getUsername());
         claims.put(CLAIM_KEY_CREATED, new Date());
-        return this.tokenHead+generateToken(claims);
+        return generateToken(claims);
     }
     public boolean canTokenBeRefreshed(String token, Date lastPasswordReset) {
         final Date created = getCreatedDateFromToken(token);
@@ -87,7 +87,7 @@ public class TokenUtil {
         try {
             final Claims claims = getClaimsFromToken(token);
             claims.put(CLAIM_KEY_CREATED, new Date());
-            refreshedToken = this.tokenHead + generateToken(claims);
+            refreshedToken = generateToken(claims);
         } catch (Exception e) {
             refreshedToken = null;
         }

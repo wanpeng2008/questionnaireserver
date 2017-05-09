@@ -84,4 +84,9 @@ public class AuthServiceImpl implements AuthService {
             throw new Exception(String.format("refresh token \"%s\" failed: token can not be refreshed. ", oldToken));
         }
     }
+
+    @Override
+    public void logout() {
+        SecurityContextHolder.getContext().setAuthentication(null);
+    }
 }
